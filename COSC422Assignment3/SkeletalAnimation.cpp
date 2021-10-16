@@ -1,7 +1,7 @@
 #include <iostream>
 #include <fstream>
 #include <GL/freeglut.h>
-
+#include "loadTGA.h"
 using namespace std;
 
 #include <assimp/cimport.h>
@@ -9,7 +9,7 @@ using namespace std;
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
 #include "assimp_extras.h"
-
+#define GL_CLAMP_TO_EDGE 0x812F
 //----------Globals----------------------------
 const aiScene* scene = NULL;
 aiAnimation* anim;
@@ -27,6 +27,9 @@ float shadowMat[16] = { lightPosn[1], 0, 0 ,0
 						-lightPosn[0], 0, -lightPosn[2], -1,	
 						0, 0,lightPosn[1], 0,
 						0, 0, 0, lightPosn[1] };
+
+//Textures
+GLuint textures[3];
 
 //Env Variables
 float curtainPos = 0;
@@ -192,6 +195,20 @@ void render(const aiScene* sc, const aiNode* nd)
 	glPopMatrix();
 }
 
+void loadTexture()
+{
+
+	glGenTextures(3, textures);
+
+	glBindTexture(GL_TEXTURE_2D, textures[0]);
+	loadTGA("curtains.tga");
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+	glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+}
 
 void updateNodeMatrices(int tick) {
 	aiNodeAnim* chnl;
@@ -282,6 +299,9 @@ void initialise()
 	tDuration = anim->mDuration;
 	timeStep = int(1000 / fps);
 
+	//Textures
+	loadTexture();
+
 	if (scene == NULL) exit(1);
 	//printSceneInfo(scene);
 	//printTreeInfo(scene->mRootNode);
@@ -326,19 +346,21 @@ void drawMaracas() {
 
 void drawCurtains()
 {
-	glColor3f(0, 1, 1);
+	glEnable(GL_TEXTURE_2D);
+	glBindTexture(GL_TEXTURE_2D, textures[0]);
 	glBegin(GL_QUADS);
 		glNormal3f(0, 0, 1);
-		glVertex3f(-3, 3.6, 3);
-		glVertex3f(-3, 0, 3);
-		glVertex3f(0 - curtainPos, 0, 3);
-		glVertex3f(0 - curtainPos, 3.6, 3);
+		glTexCoord2f(0.0, 1.0); glVertex3f(-3, 3.6, 3);
+		glTexCoord2f(0.0, 0.0); glVertex3f(-3, 0, 3);
+		glTexCoord2f(1.0 - curtainPos / 3, 0.0); glVertex3f(0 - curtainPos, 0, 3);
+		glTexCoord2f(1.0 - curtainPos / 3, 1.0); glVertex3f(0 - curtainPos, 3.6, 3);
 		
-		glVertex3f(3, 3.6, 3);
-		glVertex3f(3, 0, 3);
-		glVertex3f(0 + curtainPos, 0, 3);
-		glVertex3f(0 + curtainPos, 3.6, 3);
+		glTexCoord2f(0.0, 1.0); glVertex3f(3, 3.6, 3);
+		glTexCoord2f(0.0, 0.0); glVertex3f(3, 0, 3);
+		glTexCoord2f(1.0 - curtainPos / 3, 0.0); glVertex3f(0 + curtainPos, 0, 3);
+		glTexCoord2f(1.0 - curtainPos / 3, 1.0); glVertex3f(0 + curtainPos, 3.6, 3);
 	glEnd();
+	glDisable(GL_TEXTURE_2D);
 }
 
 void drawFront()
@@ -443,14 +465,11 @@ void display()
 		glRotatef(angle, 0, 1, 0);
 		glTranslatef(scene_center.x, scene_center.y, scene_center.z);
 		drawStage();
+		drawFloor();
 		glScalef(scene_scale, scene_scale, scene_scale);
 		glTranslatef(-scene_center.x, -scene_center.y, -scene_center.z);
 		//drawMaracas();
 		render(scene, scene->mRootNode);
-	glPopMatrix();
-
-	glPushMatrix();
-		drawFloor();
 	glPopMatrix();
 	glutSwapBuffers();
 }
