@@ -13,7 +13,7 @@ using namespace std;
 //----------Globals----------------------------
 const aiScene* scene = NULL;
 aiAnimation* anim;
-aiVector3D scene_min, scene_max, scene_center;
+aiVector3D scene_min, scene_max, scene_center, characterCenter;
 float scene_scale;
 bool modelRotn = true;
 int tDuration;       //Animation duration in ticks.
@@ -28,7 +28,8 @@ float camY = 2;
 float camX = 0;
 float camZ = 10;
 float MOVEMENT_SPEED = 0.5;
-float angle = -90;
+float ROTATION_SPEED = 5;
+float angle = 0;
 
 // ------A recursive function to traverse scene graph and render each mesh----------
 void render(const aiScene* sc, const aiNode* nd)
@@ -54,6 +55,7 @@ void render(const aiScene* sc, const aiNode* nd)
 	}
 	else if ((strcmp((nd->mName).data, "Hips") == 0))
 	{
+		characterCenter = m * aiVector3D(1, 1, 1);
 		glPushMatrix();
 		glColor3f(1, 0.5, 0.5);
 		glScalef(14, 4, 4);
@@ -267,6 +269,29 @@ void initialise()
 	scene_scale = 1.0 / scene_diag.Length();
 }
 
+/* drawFloor:
+ * Draws the floor for the scene.
+ * Draws the Floor as many quads of the same colour so that spotlight can appear on the floor.
+ * Textures the Quads
+*/
+void drawFloor() {
+	glNormal3f(0, 1, 0);
+	glColor4f(0.7, 0.7, 0.7, 1.0);
+	glBegin(GL_QUADS);
+	for (int i = -50; i < 50; i++)
+	{
+		for (int j = -50; j < 50; j++)
+		{
+			glNormal3f(0.0, 1.0, 0.0);
+			glVertex3f(i, 0, j);
+			glVertex3f(i, 0, j + 1);
+			glVertex3f(i + 1, 0, j + 1);
+			glVertex3f(i + 1, 0, j);
+		}
+	}
+	glEnd();
+}
+
 
 //------The main display function---------
 void display()
@@ -282,16 +307,28 @@ void display()
 	glLightfv(GL_LIGHT0, GL_POSITION, lightPosn);
 
 	glPushMatrix();
-	   glScalef(scene_scale, scene_scale, scene_scale);
-	   glTranslatef(-scene_center.x, -scene_center.y, -scene_center.z);
-	   render(scene, scene->mRootNode);
+		glTranslatef(-scene_center.x, -scene_center.y, -scene_center.z);
+		glRotatef(angle, 0, 1, 0);
+		glTranslatef(scene_center.x, scene_center.y, scene_center.z);
+		glScalef(scene_scale, scene_scale, scene_scale);
+		glTranslatef(-scene_center.x, -scene_center.y, -scene_center.z);
+		render(scene, scene->mRootNode);
 	glPopMatrix();
-
+	glPushMatrix();
+		drawFloor();
+	glPopMatrix();
 	glutSwapBuffers();
 }
 
-void rotateCamera(int direction) {
 
+void rotateCamera(int direction) {
+	angle += direction * ROTATION_SPEED;
+	if (angle >= 360) {
+		angle = 0;
+	}
+	else if (angle <= 0) {
+		angle = 360;
+	}
 }
 
 void zoomCamera(int direction) {
