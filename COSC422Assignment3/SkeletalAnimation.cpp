@@ -13,23 +13,32 @@ using namespace std;
 //----------Globals----------------------------
 const aiScene* scene = NULL;
 aiAnimation* anim;
-aiVector3D scene_min, scene_max, scene_center, characterCenter;
+aiVector3D scene_min, scene_max, scene_center;
 float scene_scale;
 bool modelRotn = true;
 int tDuration;       //Animation duration in ticks.
 int currTick = 0;    //current tick
 float fps;
 int timeStep;
-
 float M_PI = 3.14159265;
+//Light/Shadow Variables
+float lightPosn[4] = { -5, 10, 10, 1 };
+float shadowMat[16] = { lightPosn[1], 0, 0 ,0
+						-lightPosn[0], 0, -lightPosn[2], -1,	
+						0, 0,lightPosn[1], 0,
+						0, 0, 0, lightPosn[1] };
+
+//Env Variables
+float curtainPos = 0;
 
 //Camera Variables
 float camY = 2;
 float camX = 0;
-float camZ = 10;
+float camZ = 20;
 float MOVEMENT_SPEED = 0.5;
 float ROTATION_SPEED = 5;
 float angle = 0;
+
 
 // ------A recursive function to traverse scene graph and render each mesh----------
 void render(const aiScene* sc, const aiNode* nd)
@@ -47,15 +56,14 @@ void render(const aiScene* sc, const aiNode* nd)
 	if ((strcmp((nd->mName).data, "Chest") == 0))
 	{
 		glPushMatrix();
-		glColor3f(1, 0, 0);
-		glTranslatef(0, 7, 0);
-		glScalef(14, 20, 2);
-		glutSolidCube(1);
+			glColor3f(1, 0, 0);
+			glTranslatef(0, 7, 0);
+			glScalef(14, 20, 4);
+			glutSolidCube(1);
 		glPopMatrix();
 	}
 	else if ((strcmp((nd->mName).data, "Hips") == 0))
 	{
-		characterCenter = m * aiVector3D(1, 1, 1);
 		glPushMatrix();
 		glColor3f(1, 0.5, 0.5);
 		glScalef(14, 4, 4);
@@ -138,7 +146,7 @@ void render(const aiScene* sc, const aiNode* nd)
 	{
 		glPushMatrix();
 		glColor3f(0.5, 0.5, 1);
-		glTranslatef(0, 2.5, 0);
+		glTranslatef(0, 3, 0);
 		glRotatef(90, 1, 0, 0);
 		glutSolidCylinder(1.5, 5, 50, 10);
 		glPopMatrix();
@@ -146,38 +154,36 @@ void render(const aiScene* sc, const aiNode* nd)
 	else if ((strcmp((nd->mName).data, "Head") == 0))
 	{
 		glPushMatrix();
-		glColor3f(0.5, 0.5, 1);
-		glTranslatef(0, 2, 0);
-		glutSolidSphere(5, 20, 20);
+			glColor3f(0.5, 0.5, 1);
+			glTranslatef(0, 2, 0);
+			glutSolidSphere(5, 20, 20);
 		glPopMatrix();
 	}
 
-	else
-	{
-		// Draw all meshes assigned to this node
-		for (int n = 0; n < nd->mNumMeshes; n++)
-		{
-			meshIndex = nd->mMeshes[n];          //Get the mesh indices from the current node
-			mesh = scene->mMeshes[meshIndex];    //Using mesh index, get the mesh object
-			glColor4fv(materialCol);   //Default material colour
+	//else
+	//{
+	//	// Draw all meshes assigned to this node
+	//	for (int n = 0; n < nd->mNumMeshes; n++)
+	//	{
+	//		meshIndex = nd->mMeshes[n];          //Get the mesh indices from the current node
+	//		mesh = scene->mMeshes[meshIndex];    //Using mesh index, get the mesh object
+	//		glColor4fv(materialCol);   //Default material colour
 
-			//Get the polygons from each mesh and draw them
-			for (int k = 0; k < mesh->mNumFaces; k++)
-			{
-				face = &mesh->mFaces[k];
-				glBegin(GL_TRIANGLES);
-				for (int i = 0; i < face->mNumIndices; i++) {
-					int vertexIndex = face->mIndices[i];
-					if (mesh->HasNormals())
-						glNormal3fv(&mesh->mNormals[vertexIndex].x);
+	//		//Get the polygons from each mesh and draw them
+	//		for (int k = 0; k < mesh->mNumFaces; k++)
+	//		{
+	//			face = &mesh->mFaces[k];
+	//			glBegin(GL_TRIANGLES);
+	//			for (int i = 0; i < face->mNumIndices; i++) {
+	//				int vertexIndex = face->mIndices[i];
+	//				if (mesh->HasNormals())
+	//					glNormal3fv(&mesh->mNormals[vertexIndex].x);
 
-					glVertex3fv(&mesh->mVertices[vertexIndex].x);
-				}
-				glEnd();
-			}
-		}
-	}
-
+	//				glVertex3fv(&mesh->mVertices[vertexIndex].x);
+	//			}
+	//			glEnd();
+	//		}
+	//}
 
 	// Recursively draw all children of the current node
 	for (int i = 0; i < nd->mNumChildren; i++)
@@ -223,12 +229,29 @@ void updateNodeMatrices(int tick) {
 }
 
 void update(int value) {
-	if (currTick > tDuration) currTick = 0;
-	updateNodeMatrices(currTick);
-	glutTimerFunc(timeStep, update, 0);
-	currTick++;
+	if (curtainPos < 3 && currTick <= tDuration) {
+		updateNodeMatrices(0);
+		curtainPos += 0.1;
+		glutTimerFunc(timeStep, update, 0);
+	}
+	else if (currTick <= tDuration) {
+		updateNodeMatrices(currTick);
+		currTick++;	
+		glutTimerFunc(timeStep, update, 0);
+	}
+	else {
+		if (curtainPos > 0) {
+			curtainPos -= 0.1;
+			glutTimerFunc(timeStep, update, 0);
+		}
+		else {
+			currTick = 0;
+			updateNodeMatrices(0);
+			glutTimerFunc(1000, update, 0);
+		}
+	}
+	
 	glutPostRedisplay();
-
 }
 
 
@@ -292,11 +315,120 @@ void drawFloor() {
 	glEnd();
 }
 
+void drawMaracas() {
+	glPushMatrix();
+		glColor3f(0, 1, 1);
+		glRotatef(90, 1, 0, 0);
+		glutSolidCylinder(1, 100, 50, 10);
+	glPopMatrix();
+}
+
+
+void drawCurtains()
+{
+	glColor3f(0, 1, 1);
+	glBegin(GL_QUADS);
+		glNormal3f(0, 0, 1);
+		glVertex3f(-3, 3.6, 3);
+		glVertex3f(-3, 0, 3);
+		glVertex3f(0 - curtainPos, 0, 3);
+		glVertex3f(0 - curtainPos, 3.6, 3);
+		
+		glVertex3f(3, 3.6, 3);
+		glVertex3f(3, 0, 3);
+		glVertex3f(0 + curtainPos, 0, 3);
+		glVertex3f(0 + curtainPos, 3.6, 3);
+	glEnd();
+}
+
+void drawFront()
+{
+	glColor3f(1, 0, 0);
+	glBegin(GL_QUADS);
+		glNormal3f(0, 0, 1);
+		glVertex3f(-5, 3.5, 3.2);
+		glVertex3f(-5, 0, 3.2);
+		glVertex3f(-2.9, 0, 3.2);
+		glVertex3f(-2.9, 3.5, 3.2);
+
+		glVertex3f(5, 3.5, 3.2);
+		glVertex3f(5, 0, 3.2);
+		glVertex3f(2.9, 0, 3.2);
+		glVertex3f(2.9, 3.5, 3.2);
+	glEnd();
+	glBegin(GL_TRIANGLES);
+		glNormal3f(0, 0, 1);
+		glVertex3f(-5, 3.5, 3.2);
+		glVertex3f(5, 3.5, 3.2);
+		glVertex3f(0, 5, 3.2);
+	glEnd();
+}
+
+void drawBack()
+{
+	glColor3f(1, 0, 0);
+	glBegin(GL_QUADS);
+		glNormal3f(0, 0, -1);
+		glVertex3f(-5, 3.5, -5);
+		glVertex3f(-5, 0, -5);
+		glVertex3f(5, 0, -5);
+		glVertex3f(5, 3.5, -5);
+	glEnd();
+	glBegin(GL_TRIANGLES);
+		glNormal3f(0, 0, -1);
+		glVertex3f(-5, 3.5, -5);
+		glVertex3f(5, 3.5, -5);
+		glVertex3f(0, 5, -5);
+	glEnd();
+}
+
+void drawSides() 
+{
+	glColor3f(1, 0, 0);
+	glBegin(GL_QUADS);
+	glNormal3f(-1, 0, 0);
+	glVertex3f(-5, 3.5, 3.2);
+	glVertex3f(-5, 0, 3.2);
+	glVertex3f(-5, 0, -5);
+	glVertex3f(-5, 3.5, -5);
+
+	glNormal3f(1, 0, 0);
+	glVertex3f(5, 3.5, 3.2);
+	glVertex3f(5, 0, 3.2);
+	glVertex3f(5, 0, -5);
+	glVertex3f(5, 3.5, -5);
+	glEnd();
+}
+
+void drawRoof()
+{
+	glColor3f(1, 0, 0);
+	glBegin(GL_QUADS);
+	glNormal3f(0, 1, 0);
+	glVertex3f(-5, 3.5, 3.2);
+	glVertex3f(0, 5, 3.2);
+	glVertex3f(0, 5, -5);
+	glVertex3f(-5, 3.5, -5);
+
+	glVertex3f(5, 3.5, 3.2);
+	glVertex3f(0, 5, 3.2);
+	glVertex3f(0, 5, -5);
+	glVertex3f(5, 3.5, -5);
+	glEnd();
+}
+
+void drawStage()
+{
+	drawCurtains();
+	drawFront();
+	drawBack();
+	drawSides();
+	drawRoof();
+}
 
 //------The main display function---------
 void display()
 {
-	float lightPosn[4] = { -5, 10, 10, 1 };
 	float CDR = M_PI / 180.0;
 
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -310,15 +442,21 @@ void display()
 		glTranslatef(-scene_center.x, -scene_center.y, -scene_center.z);
 		glRotatef(angle, 0, 1, 0);
 		glTranslatef(scene_center.x, scene_center.y, scene_center.z);
+		drawStage();
 		glScalef(scene_scale, scene_scale, scene_scale);
 		glTranslatef(-scene_center.x, -scene_center.y, -scene_center.z);
+		//drawMaracas();
 		render(scene, scene->mRootNode);
 	glPopMatrix();
+
 	glPushMatrix();
 		drawFloor();
 	glPopMatrix();
 	glutSwapBuffers();
 }
+
+
+
 
 
 void rotateCamera(int direction) {
