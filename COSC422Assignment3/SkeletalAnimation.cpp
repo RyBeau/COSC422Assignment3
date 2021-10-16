@@ -48,6 +48,23 @@ void render(const aiScene* sc, const aiNode* nd)
 		glutSolidCube(1);
 		glPopMatrix();
 	}
+	else if ((strcmp((nd->mName).data, "Hips") == 0))
+	{
+		glPushMatrix();
+		glColor3f(1, 0.5, 0.5);
+		glScalef(14, 4, 4);
+		glutSolidCube(1);
+		glPopMatrix();
+	}
+	else if ((strcmp((nd->mName).data, "RightCollar") == 0) || (strcmp((nd->mName).data, "LeftCollar") == 0))
+	{
+		int side = (strcmp((nd->mName).data, "RightCollar") == 0) ? -1: 1;
+		glPushMatrix();
+		glColor3f(0.5, 1, 0.5);
+		glTranslatef(side * 7, 0, 0);
+		glutSolidSphere(3, 20, 20);
+		glPopMatrix();
+	}
 	else if ((strcmp((nd->mName).data, "RightUpLeg") == 0) || (strcmp((nd->mName).data, "LeftUpLeg") == 0))
 	{
 		glPushMatrix();
@@ -55,6 +72,12 @@ void render(const aiScene* sc, const aiNode* nd)
 		glTranslatef(0, -9, 0);
 		glScalef(3, 18, 3);
 		glutSolidCube(1);
+		glPopMatrix();
+
+		glPushMatrix();
+		glColor3f(0.5, 1, 0.5);
+		glTranslatef(0, -18, 0);
+		glutSolidSphere(3, 20, 20);
 		glPopMatrix();
 	}
 	else if ((strcmp((nd->mName).data, "RightLowLeg") == 0) || (strcmp((nd->mName).data, "LeftLowLeg") == 0))
@@ -79,9 +102,15 @@ void render(const aiScene* sc, const aiNode* nd)
 	{
 		glPushMatrix();
 		glColor3f(1, 0, 1);
-		glTranslatef(0, -7.5, 0);
-		glScalef(3, 15, 3);
+		glTranslatef(0, -6.5, 0);
+		glScalef(2.5, 13, 2.5);
 		glutSolidCube(1);
+		glPopMatrix();
+
+		glPushMatrix();
+		glColor3f(0.5, 1, 0.5);
+		glTranslatef(0, -13, 0);
+		glutSolidSphere(3, 20, 20);
 		glPopMatrix();
 	}
 	else if ((strcmp((nd->mName).data, "RightHand") == 0) || (strcmp((nd->mName).data, "LeftHand") == 0))
@@ -89,17 +118,14 @@ void render(const aiScene* sc, const aiNode* nd)
 		glPushMatrix();
 		glColor3f(0.5, 0.5, 1);
 		glTranslatef(0, 0, 0);
-		glScalef(3, 12.5, 3);
+		glScalef(2.5, 14, 2.5);
 		glutSolidCube(1);
 		glPopMatrix();
-	}
-	else if ((strcmp((nd->mName).data, "RightHand") == 0) || (strcmp((nd->mName).data, "LeftHand") == 0))
-	{
+
 		glPushMatrix();
-		glColor3f(0.5, 0.5, 1);
-		glTranslatef(0, 0, 0);
-		glScalef(3, 12.5, 3);
-		glutSolidCube(1);
+		glColor3f(0.5, 1, 0.5);
+		glTranslatef(0, -8, 0);
+		glutSolidSphere(3, 20, 20);
 		glPopMatrix();
 	}
 	else if ((strcmp((nd->mName).data, "Neck") == 0))
@@ -116,7 +142,6 @@ void render(const aiScene* sc, const aiNode* nd)
 		glPushMatrix();
 		glColor3f(0.5, 0.5, 1);
 		glTranslatef(0, 2, 0);
-		glRotatef(90, 1, 0, 0);
 		glutSolidSphere(5, 20, 20);
 		glPopMatrix();
 	}
