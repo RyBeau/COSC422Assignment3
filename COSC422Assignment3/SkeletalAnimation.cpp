@@ -39,26 +39,111 @@ void render(const aiScene* sc, const aiNode* nd)
 	glPushMatrix();
 	glMultMatrixf((float*)&m);   //Multiply by the transformation matrix for this node
 
-	// Draw all meshes assigned to this node
-	for (int n = 0; n < nd->mNumMeshes; n++)
+	if ((strcmp((nd->mName).data, "Chest") == 0))
 	{
-		meshIndex = nd->mMeshes[n];          //Get the mesh indices from the current node
-		mesh = scene->mMeshes[meshIndex];    //Using mesh index, get the mesh object
-		glColor4fv(materialCol);   //Default material colour
+		glPushMatrix();
+		glColor3f(1, 0, 0);
+		glTranslatef(0, 7, 0);
+		glScalef(14, 20, 2);
+		glutSolidCube(1);
+		glPopMatrix();
+	}
+	else if ((strcmp((nd->mName).data, "RightUpLeg") == 0) || (strcmp((nd->mName).data, "LeftUpLeg") == 0))
+	{
+		glPushMatrix();
+		glColor3f(0, 1, 0);
+		glTranslatef(0, -9, 0);
+		glScalef(3, 18, 3);
+		glutSolidCube(1);
+		glPopMatrix();
+	}
+	else if ((strcmp((nd->mName).data, "RightLowLeg") == 0) || (strcmp((nd->mName).data, "LeftLowLeg") == 0))
+	{
+		glPushMatrix();
+		glColor3f(0, 0, 1);
+		glTranslatef(0, -9, 0);
+		glScalef(3, 18, 3);
+		glutSolidCube(1);
+		glPopMatrix();
+	}
+	else if ((strcmp((nd->mName).data, "RightFoot") == 0) || (strcmp((nd->mName).data, "LeftFoot") == 0))
+	{
+		glPushMatrix();
+		glColor3f(0, 1, 1);
+		glTranslatef(0, -1.5, 4);
+		glScalef(3, 3, 10);
+		glutSolidCube(1);
+		glPopMatrix();
+	}
+	else if ((strcmp((nd->mName).data, "RightUpArm") == 0) || (strcmp((nd->mName).data, "LeftUpArm") == 0))
+	{
+		glPushMatrix();
+		glColor3f(1, 0, 1);
+		glTranslatef(0, -7.5, 0);
+		glScalef(3, 15, 3);
+		glutSolidCube(1);
+		glPopMatrix();
+	}
+	else if ((strcmp((nd->mName).data, "RightHand") == 0) || (strcmp((nd->mName).data, "LeftHand") == 0))
+	{
+		glPushMatrix();
+		glColor3f(0.5, 0.5, 1);
+		glTranslatef(0, 0, 0);
+		glScalef(3, 12.5, 3);
+		glutSolidCube(1);
+		glPopMatrix();
+	}
+	else if ((strcmp((nd->mName).data, "RightHand") == 0) || (strcmp((nd->mName).data, "LeftHand") == 0))
+	{
+		glPushMatrix();
+		glColor3f(0.5, 0.5, 1);
+		glTranslatef(0, 0, 0);
+		glScalef(3, 12.5, 3);
+		glutSolidCube(1);
+		glPopMatrix();
+	}
+	else if ((strcmp((nd->mName).data, "Neck") == 0))
+	{
+		glPushMatrix();
+		glColor3f(0.5, 0.5, 1);
+		glTranslatef(0, 2.5, 0);
+		glRotatef(90, 1, 0, 0);
+		glutSolidCylinder(1.5, 5, 50, 10);
+		glPopMatrix();
+	}
+	else if ((strcmp((nd->mName).data, "Head") == 0))
+	{
+		glPushMatrix();
+		glColor3f(0.5, 0.5, 1);
+		glTranslatef(0, 2, 0);
+		glRotatef(90, 1, 0, 0);
+		glutSolidSphere(5, 20, 20);
+		glPopMatrix();
+	}
 
-		//Get the polygons from each mesh and draw them
-		for (int k = 0; k < mesh->mNumFaces; k++)
+	else
+	{
+		// Draw all meshes assigned to this node
+		for (int n = 0; n < nd->mNumMeshes; n++)
 		{
-			face = &mesh->mFaces[k];
-			glBegin(GL_TRIANGLES);
-			for (int i = 0; i < face->mNumIndices; i++) {
-				int vertexIndex = face->mIndices[i];
-				if (mesh->HasNormals())
-					glNormal3fv(&mesh->mNormals[vertexIndex].x);
+			meshIndex = nd->mMeshes[n];          //Get the mesh indices from the current node
+			mesh = scene->mMeshes[meshIndex];    //Using mesh index, get the mesh object
+			glColor4fv(materialCol);   //Default material colour
 
-				glVertex3fv(&mesh->mVertices[vertexIndex].x);
+			//Get the polygons from each mesh and draw them
+			for (int k = 0; k < mesh->mNumFaces; k++)
+			{
+				face = &mesh->mFaces[k];
+				glBegin(GL_TRIANGLES);
+				for (int i = 0; i < face->mNumIndices; i++) {
+					int vertexIndex = face->mIndices[i];
+					if (mesh->HasNormals())
+						glNormal3fv(&mesh->mNormals[vertexIndex].x);
+
+					glVertex3fv(&mesh->mVertices[vertexIndex].x);
+				}
+				glEnd();
 			}
-			glEnd();
 		}
 	}
 
