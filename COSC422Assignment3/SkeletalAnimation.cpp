@@ -1,12 +1,7 @@
-//  ========================================================================
-//  COSC422: Advanced Computer Graphics;  University of Canterbury (2021)
-//
-//  See Ex15_SkeletalAnimation.pdf for details
-//  ========================================================================
-
 #include <iostream>
 #include <fstream>
 #include <GL/freeglut.h>
+
 using namespace std;
 
 #include <assimp/cimport.h>
@@ -25,6 +20,15 @@ int tDuration;       //Animation duration in ticks.
 int currTick = 0;    //current tick
 float fps;
 int timeStep;
+
+float M_PI = 3.14159265;
+
+//Camera Variables
+float camY = 2;
+float camX = 0;
+float camZ = 10;
+float MOVEMENT_SPEED = 0.5;
+float angle = -90;
 
 // ------A recursive function to traverse scene graph and render each mesh----------
 void render(const aiScene* sc, const aiNode* nd)
@@ -268,13 +272,13 @@ void initialise()
 void display()
 {
 	float lightPosn[4] = { -5, 10, 10, 1 };
-	float CDR = 3.14159265 / 180.0;
+	float CDR = M_PI / 180.0;
 
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
-	gluLookAt(0, 0, 10, 0, 0, 0, 0, 1, 0);
+	gluLookAt(camX, camY, camZ, 0, camY, 0, 0, 1, 0);
 	glLightfv(GL_LIGHT0, GL_POSITION, lightPosn);
 
 	glPushMatrix();
@@ -284,6 +288,43 @@ void display()
 	glPopMatrix();
 
 	glutSwapBuffers();
+}
+
+void rotateCamera(int direction) {
+
+}
+
+void zoomCamera(int direction) {
+	float moveX = -camX;
+	float moveZ = -camZ;
+	if (abs(moveX) > abs(moveZ)) {
+		moveZ /= abs(moveX);
+		moveX /= abs(moveX);
+	}
+	else {
+		moveX /= abs(moveZ);
+		moveZ /= abs(moveZ);
+	}
+	camX += moveX * direction * MOVEMENT_SPEED;
+	camZ += moveZ * direction * MOVEMENT_SPEED;
+}
+
+void special(int key, int x, int y) {
+	switch (key){
+	case GLUT_KEY_LEFT:
+		rotateCamera(1);
+		break;
+	case GLUT_KEY_RIGHT:
+		rotateCamera(-1);
+		break;
+	case GLUT_KEY_UP:
+		zoomCamera(1);
+		break;
+	case GLUT_KEY_DOWN:
+		zoomCamera(-1);
+		break;
+	}
+	glutPostRedisplay();
 }
 
 
@@ -297,6 +338,7 @@ int main(int argc, char** argv)
 	initialise();
 	glutDisplayFunc(display);
 	glutTimerFunc(timeStep, update, 0);
+	glutSpecialFunc(special);
 	glutMainLoop();
 
 	aiReleaseImport(scene);
