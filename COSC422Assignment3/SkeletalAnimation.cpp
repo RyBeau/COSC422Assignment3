@@ -207,6 +207,20 @@ void loadTexture()
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
+	glBindTexture(GL_TEXTURE_2D, textures[1]);
+	loadTGA("wood.tga");
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+	glBindTexture(GL_TEXTURE_2D, textures[2]);
+	loadTGA("floor.tga");
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
 	glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
 }
 
@@ -318,6 +332,7 @@ void initialise()
  * Textures the Quads
 */
 void drawFloor() {
+	
 	glNormal3f(0, 1, 0);
 	glColor4f(0.7, 0.7, 0.7, 1.0);
 	glBegin(GL_QUADS);
@@ -325,14 +340,30 @@ void drawFloor() {
 	{
 		for (int j = -50; j < 50; j++)
 		{
-			glNormal3f(0.0, 1.0, 0.0);
-			glVertex3f(i, 0, j);
-			glVertex3f(i, 0, j + 1);
-			glVertex3f(i + 1, 0, j + 1);
-			glVertex3f(i + 1, 0, j);
+					glVertex3f(i, 0, j);
+					glVertex3f(i, 0, j + 1);
+					glVertex3f(i + 1, 0, j + 1);
+					glVertex3f(i + 1, 0, j);
 		}
 	}
 	glEnd();
+
+	glEnable(GL_TEXTURE_2D);
+	glBindTexture(GL_TEXTURE_2D, textures[2]);
+	glBegin(GL_QUADS);
+	for (int i = -5; i < 5; i+=2)
+	{
+		for (int j = -5; j < 3; j+=2)
+		{
+			glNormal3f(0, 1, 0);
+			glTexCoord2f(0.0, 0.0); glVertex3f(i, 0.01, j);
+			glTexCoord2f(1.0, 0.0); glVertex3f(i, 0.01, j + 2);
+			glTexCoord2f(1.0, 1.0); glVertex3f(i + 2, 0.01, j + 2);
+			glTexCoord2f(0.0, 1.0); glVertex3f(i + 2, 0.01, j);
+		}
+	}
+	glEnd();
+	glDisable(GL_TEXTURE_2D);
 }
 
 void drawMaracas() {
@@ -365,66 +396,75 @@ void drawCurtains()
 
 void drawFront()
 {
-	glColor3f(1, 0, 0);
+	
+	glEnable(GL_TEXTURE_2D);
+	glBindTexture(GL_TEXTURE_2D, textures[1]);
+	glColor3f(1, 1, 1);
 	glBegin(GL_QUADS);
 		glNormal3f(0, 0, 1);
-		glVertex3f(-5, 3.5, 3.2);
-		glVertex3f(-5, 0, 3.2);
-		glVertex3f(-2.9, 0, 3.2);
-		glVertex3f(-2.9, 3.5, 3.2);
+		glTexCoord2f(0.0, 3.0); glVertex3f(-5, 3.5, 3.2);
+		glTexCoord2f(0.0, 0.0); glVertex3f(-5, 0, 3.2);
+		glTexCoord2f(2.0, 0.0); glVertex3f(-2.9, 0, 3.2);
+		glTexCoord2f(2.0, 3.0); glVertex3f(-2.9, 3.5, 3.2);
 
-		glVertex3f(5, 3.5, 3.2);
-		glVertex3f(5, 0, 3.2);
-		glVertex3f(2.9, 0, 3.2);
-		glVertex3f(2.9, 3.5, 3.2);
+		glTexCoord2f(0.0, 3.0); glVertex3f(5, 3.5, 3.2);
+		glTexCoord2f(0.0, 0.0); glVertex3f(5, 0, 3.2);
+		glTexCoord2f(2.0, 0.0); glVertex3f(2.9, 0, 3.2);
+		glTexCoord2f(2.0, 3.0); glVertex3f(2.9, 3.5, 3.2);
 	glEnd();
+	
 	glBegin(GL_TRIANGLES);
 		glNormal3f(0, 0, 1);
-		glVertex3f(-5, 3.5, 3.2);
-		glVertex3f(5, 3.5, 3.2);
-		glVertex3f(0, 5, 3.2);
+		glTexCoord2f(0.0, 0.0); glVertex3f(-5, 3.5, 3.2);
+		glTexCoord2f(5.0, 0.0); glVertex3f(5, 3.5, 3.2);
+		glTexCoord2f(2.5, 1.5); glVertex3f(0, 5, 3.2);
 	glEnd();
+	glDisable(GL_TEXTURE_2D);
 }
 
 void drawBack()
 {
-	glColor3f(1, 0, 0);
+	glEnable(GL_TEXTURE_2D);
+	glBindTexture(GL_TEXTURE_2D, textures[1]);
 	glBegin(GL_QUADS);
 		glNormal3f(0, 0, -1);
-		glVertex3f(-5, 3.5, -5);
-		glVertex3f(-5, 0, -5);
-		glVertex3f(5, 0, -5);
-		glVertex3f(5, 3.5, -5);
+		glTexCoord2f(0.0, 3.0); glVertex3f(-5, 3.5, -5);
+		glTexCoord2f(0.0, 0.0); glVertex3f(-5, 0, -5);
+		glTexCoord2f(5.0, 0.0); glVertex3f(5, 0, -5);
+		glTexCoord2f(5.0, 3.0); glVertex3f(5, 3.5, -5);
 	glEnd();
 	glBegin(GL_TRIANGLES);
 		glNormal3f(0, 0, -1);
-		glVertex3f(-5, 3.5, -5);
-		glVertex3f(5, 3.5, -5);
-		glVertex3f(0, 5, -5);
+		glTexCoord2f(0.0, 0.0); glVertex3f(-5, 3.5, -5);
+		glTexCoord2f(5.0, 0.0); glVertex3f(5, 3.5, -5);
+		glTexCoord2f(2.5, 1.5); glVertex3f(0, 5, -5);
 	glEnd();
+	glDisable(GL_TEXTURE_2D);
 }
 
 void drawSides() 
 {
-	glColor3f(1, 0, 0);
+	glEnable(GL_TEXTURE_2D);
+	glBindTexture(GL_TEXTURE_2D, textures[1]);
 	glBegin(GL_QUADS);
-	glNormal3f(-1, 0, 0);
-	glVertex3f(-5, 3.5, 3.2);
-	glVertex3f(-5, 0, 3.2);
-	glVertex3f(-5, 0, -5);
-	glVertex3f(-5, 3.5, -5);
+		glNormal3f(-1, 0, 0);
+		glTexCoord2f(5.0, 3.0); glVertex3f(-5, 3.5, 3.2);
+		glTexCoord2f(5.0, 0.0); glVertex3f(-5, 0, 3.2);
+		glTexCoord2f(0.0, 0.0); glVertex3f(-5, 0, -5);
+		glTexCoord2f(0.0, 3.0); glVertex3f(-5, 3.5, -5);
 
-	glNormal3f(1, 0, 0);
-	glVertex3f(5, 3.5, 3.2);
-	glVertex3f(5, 0, 3.2);
-	glVertex3f(5, 0, -5);
-	glVertex3f(5, 3.5, -5);
+		glNormal3f(1, 0, 0);
+		glTexCoord2f(5.0, 3.0); glVertex3f(5, 3.5, 3.2);
+		glTexCoord2f(5.0, 0.0); glVertex3f(5, 0, 3.2);
+		glTexCoord2f(0.0, 0.0); glVertex3f(5, 0, -5);
+		glTexCoord2f(0.0, 3.0); glVertex3f(5, 3.5, -5);
 	glEnd();
+	glDisable(GL_TEXTURE_2D);
 }
 
 void drawRoof()
 {
-	glColor3f(1, 0, 0);
+	glColor3f(0, 0, 0);
 	glBegin(GL_QUADS);
 	glNormal3f(0, 1, 0);
 	glVertex3f(-5, 3.5, 3.2);
