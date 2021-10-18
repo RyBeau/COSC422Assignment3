@@ -475,7 +475,7 @@ void display()
 		glPopMatrix();
 		
 		glPushMatrix();
-			glColor4f(0.2, 0.2, 0.2, 1);
+			glColor4f(0.15, 0.15, 0.15, 1);
 			glTranslatef(0, 0.01, 0);
 			glMultMatrixf(shadowMat);
 			glScalef(scene_scale, scene_scale, scene_scale);
