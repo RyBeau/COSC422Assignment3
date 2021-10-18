@@ -350,6 +350,7 @@ void drawFloor() {
 
 	glEnable(GL_TEXTURE_2D);
 	glBindTexture(GL_TEXTURE_2D, textures[2]);
+	glColor3f(1, 1, 1);
 	glBegin(GL_QUADS);
 	for (int i = -5; i < 5; i+=2)
 	{
@@ -366,7 +367,8 @@ void drawFloor() {
 	glDisable(GL_TEXTURE_2D);
 }
 
-void drawMaracas() {
+void drawMaracas() 
+{
 	glPushMatrix();
 		glColor3f(0, 1, 1);
 		glRotatef(90, 1, 0, 0);
