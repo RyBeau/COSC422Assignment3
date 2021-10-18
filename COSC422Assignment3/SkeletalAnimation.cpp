@@ -468,8 +468,12 @@ void display()
 		glTranslatef(-scene_center.x, -scene_center.y, -scene_center.z);
 		glRotatef(angle, 0, 1, 0);
 		glTranslatef(scene_center.x, scene_center.y, scene_center.z);
-		drawFloor();
-		//drawStage();
+		glPushMatrix();
+			glTranslatef(0, 0, 2);
+			drawFloor();
+			drawStage();
+		glPopMatrix();
+		
 		glPushMatrix();
 			glColor4f(0.2, 0.2, 0.2, 1);
 			glTranslatef(0, 0.01, 0);
