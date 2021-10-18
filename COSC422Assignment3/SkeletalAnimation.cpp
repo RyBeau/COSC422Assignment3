@@ -23,6 +23,12 @@ int currTick = 0;    //current tick
 float fps;
 int timeStep;
 float M_PI = 3.14159265;
+float CDR = M_PI / 180.0f;
+
+//toggle variables
+bool toggleStage = true;
+bool pauseAnimation = false;
+
 //Light/Shadow Variables
 float lightPosn[4] = { -5, 10, 10, 1 };
 float shadowMat[16] = { 10, 0, 0, 0, 5, 0.01, 10, -1, 0, 0, 10, 0, 0, 0, 0, 10 };
@@ -39,7 +45,7 @@ float ballX = -0.3;
 float ballY = 0.2;
 float ballZ = 0.6;
 
-float CDR = M_PI / 180.0f;
+
 float g = 9.81;
 float netVelocity = 10;
 float velocityx = netVelocity * cos(45 * CDR) * cos(45 * CDR); //X Velocity
@@ -276,33 +282,40 @@ void moveBall()
 }
 
 void update(int value) {
-	if (curtainPos < 3 && currTick <= tDuration) {
-		updateNodeMatrices(0);
-		curtainPos += 0.1;
-		glutTimerFunc(timeStep, update, 0);
-	}
-	else if (currTick <= tDuration) {
-		updateNodeMatrices(currTick);
-		currTick++;	
-		glutTimerFunc(timeStep, update, 0);
-	}
-	else {
-		if (curtainPos > 0) {
-			curtainPos -= 0.1;
+	if (!pauseAnimation)
+	{
+		if (curtainPos < 3 && currTick <= tDuration) {
+			updateNodeMatrices(0);
+			curtainPos += 0.1;
+			glutTimerFunc(timeStep, update, 0);
+		}
+		else if (currTick <= tDuration) {
+			updateNodeMatrices(currTick);
+			currTick++;
 			glutTimerFunc(timeStep, update, 0);
 		}
 		else {
-			currTick = 0;
-			updateNodeMatrices(0);
-			resetBall = true;
-			glutTimerFunc(1000, update, 0);
+			if (curtainPos > 0) {
+				curtainPos -= 0.1;
+				glutTimerFunc(timeStep, update, 0);
+			}
+			else {
+				currTick = 0;
+				updateNodeMatrices(0);
+				resetBall = true;
+				glutTimerFunc(1000, update, 0);
+			}
+		}
+
+		if ((footVec.x * scene_scale) <= ballX && (footVec.z * scene_scale) >= ballZ && !isKicked) {
+			isKicked = true;
+		}
+		if (isKicked) {
+			moveBall();
 		}
 	}
-	if ((footVec.x * scene_scale) <= ballX && (footVec.z * scene_scale) >= ballZ && !isKicked) {
-		isKicked = true;
-	}
-	if (isKicked) {
-		moveBall();
+	else {
+		glutTimerFunc(timeStep, update, 0);
 	}
 	glutPostRedisplay();
 }
@@ -503,11 +516,15 @@ void drawRoof()
 
 void drawStage()
 {
-	drawCurtains();
-	drawFront();
-	drawBack();
-	drawSides();
-	drawRoof();
+	if (toggleStage)
+	{
+		drawCurtains();
+		drawFront();
+		drawBack();
+		drawSides();
+		drawRoof();
+	}
+
 }
 
 //------The main display function---------
@@ -581,8 +598,18 @@ void zoomCamera(int direction) {
 		moveX /= abs(moveZ);
 		moveZ /= abs(moveZ);
 	}
-	camX += moveX * direction * MOVEMENT_SPEED;
-	camZ += moveZ * direction * MOVEMENT_SPEED;
+
+
+	float xDist = scene_center.x - camX;
+	float yDist = scene_center.y - camY;
+	float zDist = scene_center.z - camZ;
+	float distance = sqrt(pow(xDist, 2) + pow(yDist, 2) + pow(zDist, 2));
+	cout << distance << endl;
+	if (distance > 7 || direction < 0)
+	{
+		camX += moveX * direction * MOVEMENT_SPEED;
+		camZ += moveZ * direction * MOVEMENT_SPEED;
+	}
 }
 
 void special(int key, int x, int y) {
@@ -603,6 +630,18 @@ void special(int key, int x, int y) {
 	glutPostRedisplay();
 }
 
+void keyboard(unsigned char key, int x, int y)
+{
+	switch (key) {
+	case 'b':
+		toggleStage = !toggleStage;
+		break;
+	case ' ':
+		pauseAnimation = !pauseAnimation;
+		break;
+	}	
+	glutPostRedisplay();
+}
 
 int main(int argc, char** argv)
 {
@@ -615,6 +654,7 @@ int main(int argc, char** argv)
 	glutDisplayFunc(display);
 	glutTimerFunc(timeStep, update, 0);
 	glutSpecialFunc(special);
+	glutKeyboardFunc(keyboard);
 	glutMainLoop();
 
 	aiReleaseImport(scene);
