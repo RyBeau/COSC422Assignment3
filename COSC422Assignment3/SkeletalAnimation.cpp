@@ -1,3 +1,9 @@
+/*
+	COSC422 Assignment 3
+	Author: Ryan Beaumont
+	Modified from Programming Exercise 15
+*/
+
 #include <iostream>
 #include <fstream>
 #include <GL/freeglut.h>
@@ -8,8 +14,6 @@ using namespace std;
 #include <assimp/types.h>
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
-#include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
 #include "assimp_extras.h"
 #define GL_CLAMP_TO_EDGE 0x812F
 //----------Globals----------------------------
@@ -25,9 +29,11 @@ int timeStep;
 float M_PI = 3.14159265;
 float CDR = M_PI / 180.0f;
 
-//toggle variables
+//Boolean Toggle variables
 bool toggleStage = true;
 bool pauseAnimation = false;
+bool isKicked = false;
+bool resetBall = false;
 
 //Light/Shadow Variables
 float lightPosn[4] = { -5, 10, 10, 1 };
@@ -45,15 +51,12 @@ float ballX = -0.3;
 float ballY = 0.2;
 float ballZ = 0.6;
 
-
+//Physics Variables
 float g = 9.81;
 float netVelocity = 10;
 float velocityx = netVelocity * cos(45 * CDR) * cos(45 * CDR); //X Velocity
 float velocityy = netVelocity * sin(45 * CDR) * cos(45 * CDR); //Y Velocity
 float velocityz = netVelocity * cos(45 * CDR); //Y Velocity
-
-bool isKicked = false;
-bool resetBall = false;
 
 //Foot Position
 aiVector3D footVec;
@@ -67,7 +70,9 @@ float ROTATION_SPEED = 5;
 float angle = 0;
 
 
-// ------A recursive function to traverse scene graph and render each mesh----------
+/*
+	Renders the scene graph object with glut primitives.
+*/
 void render(const aiScene* sc, const aiNode* nd)
 {
 	aiMatrix4x4 m = nd->mTransformation;
@@ -126,6 +131,9 @@ void render(const aiScene* sc, const aiNode* nd)
 	}
 	else if ((strcmp((nd->mName).data, "RightFoot") == 0) || (strcmp((nd->mName).data, "LeftFoot") == 0))
 	{
+		/*
+			Calculates the world coordinates of the Right Foot
+		*/
 		if (strcmp((nd->mName).data, "RightFoot") == 0)
 		{
 			aiNode* parent = nd->mParent;
@@ -199,6 +207,9 @@ void render(const aiScene* sc, const aiNode* nd)
 	glPopMatrix();
 }
 
+/*
+	Loads the textures used for texturing the stage.
+*/
 void loadTexture()
 {
 
@@ -228,6 +239,9 @@ void loadTexture()
 	glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
 }
 
+/*
+	Updates the node matrices to play the animation.
+*/
 void updateNodeMatrices(int tick) {
 	aiNodeAnim* chnl;
 	aiVector3D posn;
@@ -263,6 +277,11 @@ void updateNodeMatrices(int tick) {
 	}
 }
 
+
+/*
+	Moves the ball according to the calculated velocity for
+	the x, y, z axies.
+*/
 void moveBall()
 {
 	if (ballY > 0.2) {
@@ -281,6 +300,12 @@ void moveBall()
 	}
 }
 
+/*
+	This function is responsble for calling updating the scene
+	at the frame rate calculated from the BVH file. It calls the 
+	functions for updating the nodeMatrices, adjusts the curtain position
+	and triggers the balls movement.
+*/
 void update(int value) {
 	if (!pauseAnimation)
 	{
@@ -352,8 +377,6 @@ void initialise()
 	loadTexture();
 
 	if (scene == NULL) exit(1);
-	//printSceneInfo(scene);
-	//printTreeInfo(scene->mRootNode);
 
 	get_bounding_box(scene, &scene_min, &scene_max);
 	scene_center = (scene_min + scene_max) * 0.5f;
@@ -383,6 +406,9 @@ void drawFloor() {
 	}
 	glEnd();
 
+	/*
+		Draws the stage floor.
+	*/
 	glEnable(GL_TEXTURE_2D);
 	glBindTexture(GL_TEXTURE_2D, textures[2]);
 	glColor3f(1, 1, 1);
@@ -402,6 +428,9 @@ void drawFloor() {
 	glDisable(GL_TEXTURE_2D);
 }
 
+/*
+	Draws the ball that gets kicked by the character.
+*/
 void drawBall() 
 {
 	glColor3f(0, 0, 1);
@@ -409,7 +438,10 @@ void drawBall()
 	glutSolidSphere(0.2, 20, 20);
 }
 
-
+/*
+	Draws and textures  the curtains for the stage the character is on. The curtains are made from
+	two rectangles defines as vertices using GL_QUADS.
+*/
 void drawCurtains()
 {
 	glEnable(GL_TEXTURE_2D);
@@ -429,6 +461,10 @@ void drawCurtains()
 	glDisable(GL_TEXTURE_2D);
 }
 
+/*
+	Draws and textures the front of the stage. The front is made from
+	two rectangles and a triangle defined as vertices using GL_QUADS and GL_TRIANGLES.
+*/
 void drawFront()
 {
 	
@@ -457,6 +493,10 @@ void drawFront()
 	glDisable(GL_TEXTURE_2D);
 }
 
+/*
+	Draws and textures the back of the stage. The back is made from
+	two rectangles and a triangle defined as vertices using GL_QUADS and GL_TRIANGLES.
+*/
 void drawBack()
 {
 	glEnable(GL_TEXTURE_2D);
@@ -477,6 +517,10 @@ void drawBack()
 	glDisable(GL_TEXTURE_2D);
 }
 
+/*
+	Draws and textures the sides of the stage. The sides are made from
+	two rectangles defined as vertices using GL_QUADS.
+*/
 void drawSides() 
 {
 	glEnable(GL_TEXTURE_2D);
@@ -497,6 +541,10 @@ void drawSides()
 	glDisable(GL_TEXTURE_2D);
 }
 
+/*
+	Draws and textures the roof of the stage. The roof is made from
+	two rectangles defined as vertices using GL_QUADS.
+*/
 void drawRoof()
 {
 	glColor3f(0, 0, 0);
@@ -514,6 +562,9 @@ void drawRoof()
 	glEnd();
 }
 
+/*
+	Draws the stage by calling all the supporting functions.
+*/
 void drawStage()
 {
 	if (toggleStage)
@@ -574,9 +625,9 @@ void display()
 }
 
 
-
-
-
+/*
+	Adjusts the angle of rotation of the camera around the character.
+*/
 void rotateCamera(int direction) {
 	angle += direction * ROTATION_SPEED;
 	if (angle >= 360) {
@@ -587,6 +638,9 @@ void rotateCamera(int direction) {
 	}
 }
 
+/*
+	Adjusts the distance of the camera to the character.
+*/
 void zoomCamera(int direction) {
 	float moveX = -camX;
 	float moveZ = -camZ;
@@ -604,7 +658,6 @@ void zoomCamera(int direction) {
 	float yDist = scene_center.y - camY;
 	float zDist = scene_center.z - camZ;
 	float distance = sqrt(pow(xDist, 2) + pow(yDist, 2) + pow(zDist, 2));
-	cout << distance << endl;
 	if (distance > 7 || direction < 0)
 	{
 		camX += moveX * direction * MOVEMENT_SPEED;
@@ -612,6 +665,9 @@ void zoomCamera(int direction) {
 	}
 }
 
+/*
+	Callback function for special keyboard/mouse events.
+*/
 void special(int key, int x, int y) {
 	switch (key){
 	case GLUT_KEY_LEFT:
@@ -630,6 +686,9 @@ void special(int key, int x, int y) {
 	glutPostRedisplay();
 }
 
+/*
+	Callback function for keyboard events.
+*/
 void keyboard(unsigned char key, int x, int y)
 {
 	switch (key) {
