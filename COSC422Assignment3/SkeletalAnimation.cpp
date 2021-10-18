@@ -34,6 +34,24 @@ GLuint textures[3];
 //Env Variables
 float curtainPos = 0;
 
+//Ball Position
+float ballX = -0.3;
+float ballY = 0.2;
+float ballZ = 0.6;
+
+float CDR = M_PI / 180.0f;
+float g = 9.81;
+float netVelocity = 10;
+float velocityx = netVelocity * cos(45 * CDR) * cos(45 * CDR); //X Velocity
+float velocityy = netVelocity * sin(45 * CDR) * cos(45 * CDR); //Y Velocity
+float velocityz = netVelocity * cos(45 * CDR); //Y Velocity
+
+bool isKicked = false;
+bool resetBall = false;
+
+//Foot Position
+aiVector3D footVec;
+
 //Camera Variables
 float camY = 2;
 float camX = 0;
@@ -55,8 +73,6 @@ void render(const aiScene* sc, const aiNode* nd)
 	m.Transpose();      //Convert to column-major order
 	glPushMatrix();
 	glMultMatrixf((float*)&m);   //Multiply by the transformation matrix for this node
-	
-	aiVector3D currentPos = m * aiVector3D(1, 1, 1);
 
 	if ((strcmp((nd->mName).data, "Chest") == 0))
 	{
@@ -104,6 +120,25 @@ void render(const aiScene* sc, const aiNode* nd)
 	}
 	else if ((strcmp((nd->mName).data, "RightFoot") == 0) || (strcmp((nd->mName).data, "LeftFoot") == 0))
 	{
+		if (strcmp((nd->mName).data, "RightFoot") == 0)
+		{
+			aiNode* parent = nd->mParent;
+			aiMatrix4x4 matrices[4];
+			matrices[3] = nd->mTransformation;
+			int index = 2;
+			while (parent != NULL) {
+				matrices[index] = parent->mTransformation;
+				parent = parent->mParent;
+				index--;
+			}
+			aiMatrix4x4 worldMatrix = matrices[0];
+			for (int i = 1; i < 4; i++)
+			{
+				worldMatrix *= matrices[i];
+			}
+			footVec = aiVector3D(0, 0, 0);
+			footVec *= worldMatrix;
+		}
 		glPushMatrix();
 		glTranslatef(0, -1.5, 2);
 		glScalef(3, 3, 7);
@@ -222,6 +257,24 @@ void updateNodeMatrices(int tick) {
 	}
 }
 
+void moveBall()
+{
+	if (ballY > 0.2) {
+		ballX -= velocityx / 1000 * timeStep;
+		ballY += velocityy / 1000 * timeStep;
+		ballZ += velocityz / 1000 * timeStep;
+		velocityy -= g / 1000 * timeStep;
+	}
+	else if (resetBall) {
+		ballX = -0.3;
+		ballY = 0.2;
+		ballZ = 0.6;
+		velocityy = netVelocity * sin(45 * CDR) * cos(45 * CDR); //Y Velocity;
+		isKicked = false;
+		resetBall = false;
+	}
+}
+
 void update(int value) {
 	if (curtainPos < 3 && currTick <= tDuration) {
 		updateNodeMatrices(0);
@@ -241,10 +294,16 @@ void update(int value) {
 		else {
 			currTick = 0;
 			updateNodeMatrices(0);
+			resetBall = true;
 			glutTimerFunc(1000, update, 0);
 		}
 	}
-	
+	if ((footVec.x * scene_scale) <= ballX && (footVec.z * scene_scale) >= ballZ && !isKicked) {
+		isKicked = true;
+	}
+	if (isKicked) {
+		moveBall();
+	}
 	glutPostRedisplay();
 }
 
@@ -330,13 +389,11 @@ void drawFloor() {
 	glDisable(GL_TEXTURE_2D);
 }
 
-void drawMaracas() 
+void drawBall() 
 {
-	glPushMatrix();
-		glColor3f(0, 1, 1);
-		glRotatef(90, 1, 0, 0);
-		glutSolidCylinder(1, 100, 50, 10);
-	glPopMatrix();
+	glColor3f(0, 0, 1);
+	glTranslatef(ballX, ballY, ballZ);
+	glutSolidSphere(0.2, 20, 20);
 }
 
 
@@ -487,9 +544,12 @@ void display()
 			glTranslatef(0, -0.1, 0);
 			glScalef(scene_scale, scene_scale, scene_scale);
 			glTranslatef(-scene_center.x, -scene_center.y, -scene_center.z);
-			//drawMaracas();
 			glColor3f(0, 0.7, 0.7);
 			render(scene, scene->mRootNode);
+		glPopMatrix();
+
+		glPushMatrix();
+			drawBall();
 		glPopMatrix();
 	glPopMatrix();
 
