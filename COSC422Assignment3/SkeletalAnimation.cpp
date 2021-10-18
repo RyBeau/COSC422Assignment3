@@ -37,7 +37,7 @@ bool resetBall = false;
 
 //Light/Shadow Variables
 float lightPosn[4] = { -5, 10, 10, 1 };
-float shadowMat[16] = { 10, 0, 0, 0, 5, 0.01, 10, -1, 0, 0, 10, 0, 0, 0, 0, 10 };
+float shadowMat[16] = { lightPosn[1], 0, 0, 0, -lightPosn[0], 0.01, -lightPosn[2], -1, 0, 0, lightPosn[1], 0, 0, 0, 0, lightPosn[1] };
 
 
 //Textures
