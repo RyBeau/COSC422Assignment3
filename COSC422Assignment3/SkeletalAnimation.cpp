@@ -8,6 +8,8 @@ using namespace std;
 #include <assimp/types.h>
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
 #include "assimp_extras.h"
 #define GL_CLAMP_TO_EDGE 0x812F
 //----------Globals----------------------------
@@ -23,10 +25,8 @@ int timeStep;
 float M_PI = 3.14159265;
 //Light/Shadow Variables
 float lightPosn[4] = { -5, 10, 10, 1 };
-float shadowMat[16] = { lightPosn[1], 0, 0 ,0
-						-lightPosn[0], 0, -lightPosn[2], -1,	
-						0, 0,lightPosn[1], 0,
-						0, 0, 0, lightPosn[1] };
+float shadowMat[16] = { 10, 0, 0, 0, 5, 0.01, 10, -1, 0, 0, 10, 0, 0, 0, 0, 10 };
+
 
 //Textures
 GLuint textures[3];
@@ -51,15 +51,16 @@ void render(const aiScene* sc, const aiNode* nd)
 	aiFace* face;
 	float materialCol[4] = { 1, 0, 1, 1 };
 	int meshIndex;
-
+	
 	m.Transpose();      //Convert to column-major order
 	glPushMatrix();
 	glMultMatrixf((float*)&m);   //Multiply by the transformation matrix for this node
+	
+	aiVector3D currentPos = m * aiVector3D(1, 1, 1);
 
 	if ((strcmp((nd->mName).data, "Chest") == 0))
 	{
 		glPushMatrix();
-			glColor3f(1, 0, 0);
 			glTranslatef(0, 7, 0);
 			glScalef(14, 20, 4);
 			glutSolidCube(1);
@@ -68,7 +69,6 @@ void render(const aiScene* sc, const aiNode* nd)
 	else if ((strcmp((nd->mName).data, "Hips") == 0))
 	{
 		glPushMatrix();
-		glColor3f(1, 0.5, 0.5);
 		glScalef(14, 4, 4);
 		glutSolidCube(1);
 		glPopMatrix();
@@ -77,7 +77,6 @@ void render(const aiScene* sc, const aiNode* nd)
 	{
 		int side = (strcmp((nd->mName).data, "RightCollar") == 0) ? -1: 1;
 		glPushMatrix();
-		glColor3f(0.5, 1, 0.5);
 		glTranslatef(side * 7, 0, 0);
 		glutSolidSphere(3, 20, 20);
 		glPopMatrix();
@@ -85,14 +84,12 @@ void render(const aiScene* sc, const aiNode* nd)
 	else if ((strcmp((nd->mName).data, "RightUpLeg") == 0) || (strcmp((nd->mName).data, "LeftUpLeg") == 0))
 	{
 		glPushMatrix();
-		glColor3f(0, 1, 0);
 		glTranslatef(0, -9, 0);
 		glScalef(3, 18, 3);
 		glutSolidCube(1);
 		glPopMatrix();
 
 		glPushMatrix();
-		glColor3f(0.5, 1, 0.5);
 		glTranslatef(0, -18, 0);
 		glutSolidSphere(3, 20, 20);
 		glPopMatrix();
@@ -100,7 +97,6 @@ void render(const aiScene* sc, const aiNode* nd)
 	else if ((strcmp((nd->mName).data, "RightLowLeg") == 0) || (strcmp((nd->mName).data, "LeftLowLeg") == 0))
 	{
 		glPushMatrix();
-		glColor3f(0, 0, 1);
 		glTranslatef(0, -9, 0);
 		glScalef(3, 18, 3);
 		glutSolidCube(1);
@@ -109,23 +105,20 @@ void render(const aiScene* sc, const aiNode* nd)
 	else if ((strcmp((nd->mName).data, "RightFoot") == 0) || (strcmp((nd->mName).data, "LeftFoot") == 0))
 	{
 		glPushMatrix();
-		glColor3f(0, 1, 1);
-		glTranslatef(0, -1.5, 4);
-		glScalef(3, 3, 10);
+		glTranslatef(0, -1.5, 2);
+		glScalef(3, 3, 7);
 		glutSolidCube(1);
 		glPopMatrix();
 	}
 	else if ((strcmp((nd->mName).data, "RightUpArm") == 0) || (strcmp((nd->mName).data, "LeftUpArm") == 0))
 	{
 		glPushMatrix();
-		glColor3f(1, 0, 1);
 		glTranslatef(0, -6.5, 0);
 		glScalef(2.5, 13, 2.5);
 		glutSolidCube(1);
 		glPopMatrix();
 
 		glPushMatrix();
-		glColor3f(0.5, 1, 0.5);
 		glTranslatef(0, -13, 0);
 		glutSolidSphere(3, 20, 20);
 		glPopMatrix();
@@ -133,14 +126,12 @@ void render(const aiScene* sc, const aiNode* nd)
 	else if ((strcmp((nd->mName).data, "RightHand") == 0) || (strcmp((nd->mName).data, "LeftHand") == 0))
 	{
 		glPushMatrix();
-		glColor3f(0.5, 0.5, 1);
 		glTranslatef(0, 0, 0);
 		glScalef(2.5, 14, 2.5);
 		glutSolidCube(1);
 		glPopMatrix();
 
 		glPushMatrix();
-		glColor3f(0.5, 1, 0.5);
 		glTranslatef(0, -8, 0);
 		glutSolidSphere(3, 20, 20);
 		glPopMatrix();
@@ -148,7 +139,6 @@ void render(const aiScene* sc, const aiNode* nd)
 	else if ((strcmp((nd->mName).data, "Neck") == 0))
 	{
 		glPushMatrix();
-		glColor3f(0.5, 0.5, 1);
 		glTranslatef(0, 3, 0);
 		glRotatef(90, 1, 0, 0);
 		glutSolidCylinder(1.5, 5, 50, 10);
@@ -157,38 +147,11 @@ void render(const aiScene* sc, const aiNode* nd)
 	else if ((strcmp((nd->mName).data, "Head") == 0))
 	{
 		glPushMatrix();
-			glColor3f(0.5, 0.5, 1);
 			glTranslatef(0, 2, 0);
 			glutSolidSphere(5, 20, 20);
 		glPopMatrix();
 	}
 
-	//else
-	//{
-	//	// Draw all meshes assigned to this node
-	//	for (int n = 0; n < nd->mNumMeshes; n++)
-	//	{
-	//		meshIndex = nd->mMeshes[n];          //Get the mesh indices from the current node
-	//		mesh = scene->mMeshes[meshIndex];    //Using mesh index, get the mesh object
-	//		glColor4fv(materialCol);   //Default material colour
-
-	//		//Get the polygons from each mesh and draw them
-	//		for (int k = 0; k < mesh->mNumFaces; k++)
-	//		{
-	//			face = &mesh->mFaces[k];
-	//			glBegin(GL_TRIANGLES);
-	//			for (int i = 0; i < face->mNumIndices; i++) {
-	//				int vertexIndex = face->mIndices[i];
-	//				if (mesh->HasNormals())
-	//					glNormal3fv(&mesh->mNormals[vertexIndex].x);
-
-	//				glVertex3fv(&mesh->mVertices[vertexIndex].x);
-	//			}
-	//			glEnd();
-	//		}
-	//}
-
-	// Recursively draw all children of the current node
 	for (int i = 0; i < nd->mNumChildren; i++)
 		render(sc, nd->mChildren[i]);
 
@@ -496,7 +459,6 @@ void display()
 	float CDR = M_PI / 180.0;
 
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
 	gluLookAt(camX, camY, camZ, 0, camY, 0, 0, 1, 0);
@@ -506,13 +468,27 @@ void display()
 		glTranslatef(-scene_center.x, -scene_center.y, -scene_center.z);
 		glRotatef(angle, 0, 1, 0);
 		glTranslatef(scene_center.x, scene_center.y, scene_center.z);
-		drawStage();
 		drawFloor();
-		glScalef(scene_scale, scene_scale, scene_scale);
-		glTranslatef(-scene_center.x, -scene_center.y, -scene_center.z);
-		//drawMaracas();
-		render(scene, scene->mRootNode);
+		//drawStage();
+		glPushMatrix();
+			glColor4f(0.2, 0.2, 0.2, 1);
+			glTranslatef(0, 0.01, 0);
+			glMultMatrixf(shadowMat);
+			glScalef(scene_scale, scene_scale, scene_scale);
+			glTranslatef(-scene_center.x, -scene_center.y, -scene_center.z);
+			render(scene, scene->mRootNode);
+		glPopMatrix();
+
+		glPushMatrix();
+			glTranslatef(0, -0.1, 0);
+			glScalef(scene_scale, scene_scale, scene_scale);
+			glTranslatef(-scene_center.x, -scene_center.y, -scene_center.z);
+			//drawMaracas();
+			glColor3f(0, 0.7, 0.7);
+			render(scene, scene->mRootNode);
+		glPopMatrix();
 	glPopMatrix();
+
 	glutSwapBuffers();
 }
 
