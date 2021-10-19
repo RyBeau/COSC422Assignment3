@@ -56,7 +56,7 @@ float g = 9.81;
 float netVelocity = 10;
 float velocityx = netVelocity * cos(45 * CDR) * cos(45 * CDR); //X Velocity
 float velocityy = netVelocity * sin(45 * CDR) * cos(45 * CDR); //Y Velocity
-float velocityz = netVelocity * cos(45 * CDR); //Y Velocity
+float velocityz = netVelocity * cos(45 * CDR); //Z Velocity
 
 //Foot Position
 aiVector3D footVec;
@@ -285,6 +285,7 @@ void updateNodeMatrices(int tick) {
 void moveBall()
 {
 	if (ballY > 0.2) {
+		cout << velocityy << endl;
 		ballX -= velocityx / 1000 * timeStep;
 		ballY += velocityy / 1000 * timeStep;
 		ballZ += velocityz / 1000 * timeStep;
@@ -294,7 +295,10 @@ void moveBall()
 		ballX = -0.3;
 		ballY = 0.2;
 		ballZ = 0.6;
-		velocityy = netVelocity * sin(45 * CDR) * cos(45 * CDR); //Y Velocity;
+		velocityx = netVelocity * cos(45 * CDR) * cos(45 * CDR); //X Velocity
+		velocityy = netVelocity * sin(45 * CDR) * cos(45 * CDR); //Y Velocity
+		velocityz = netVelocity * cos(45 * CDR); //Z Velocity
+		
 		isKicked = false;
 		resetBall = false;
 	}
@@ -665,6 +669,15 @@ void zoomCamera(int direction) {
 	}
 }
 
+
+void changeVelocity(int direction) {
+	if (netVelocity > 3 || direction > 0) {
+		netVelocity += direction * 0.5;
+		cout << netVelocity << endl;
+	}
+}
+
+
 /*
 	Callback function for special keyboard/mouse events.
 */
@@ -681,6 +694,12 @@ void special(int key, int x, int y) {
 		break;
 	case GLUT_KEY_DOWN:
 		zoomCamera(-1);
+		break;
+	case GLUT_KEY_PAGE_UP:
+		changeVelocity(1);
+		break;
+	case GLUT_KEY_PAGE_DOWN:
+		changeVelocity(-1);
 		break;
 	}
 	glutPostRedisplay();
