@@ -335,7 +335,7 @@ void update(int value) {
 			}
 		}
 
-		if ((footVec.x * scene_scale) <= ballX && (footVec.z * scene_scale) >= ballZ && !isKicked) {
+		if ((footVec.x * scene_scale) <= ballX + 0.2 && (footVec.z * scene_scale) >= ballZ - 0.2 && !isKicked) {
 			isKicked = true;
 		}
 		if (isKicked) {
