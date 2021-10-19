@@ -285,6 +285,7 @@ void updateNodeMatrices(int tick) {
 void moveBall()
 {
 	if (ballY > 0.2) {
+		cout << velocityy << endl;
 		ballX -= velocityx / 1000 * timeStep;
 		ballY += velocityy / 1000 * timeStep;
 		ballZ += velocityz / 1000 * timeStep;
@@ -674,6 +675,7 @@ void zoomCamera(int direction) {
 void changeVelocity(int direction) {
 	if (netVelocity > 3 || direction > 0) {
 		netVelocity += direction * 0.5;
+		cout << netVelocity << endl;
 	}
 }
 
