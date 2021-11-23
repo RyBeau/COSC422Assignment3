@@ -9,8 +9,8 @@ This repository contains my submission for the COSC422 Skeletal Animation.
 - Animation Looping
 
 ## Final Animation
-![Final Animation](https://i.imgur.com/es0TGgAh.gif "Rotating Animation")
-![Rotating Animation](https://i.imgur.com/1IjySK0h.gif "Rotating Animation")
+![Final Animation](https://gfycat.com/dimwittedinformalayeaye "Final Animation")
+![Rotating Animation](https://gfycat.com/bewitchedachingamethystinepython "Rotating Animation")
 
 ## Controls 
 - Left Arrow: Rotate left around the model.
