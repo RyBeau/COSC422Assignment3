@@ -9,7 +9,7 @@ This repository contains my submission for the COSC422 Skeletal Animation.
 - Animation Looping
 
 ## Final Animation
-![Final Animation](https://media3.giphy.com/media/mmQIbJNcYw8SWiImGD/giphy.gif "Final Animation")
+![Imgur](https://imgur.com/es0TGgA)
 ![Rotating Animation](https://media0.giphy.com/media/06SwTnolwZJ3fErICq/giphy.gif "Rotating Animation")
 
 ## Controls 
